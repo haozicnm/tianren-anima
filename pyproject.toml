@@ -1,0 +1,27 @@
+[project]
+name = "tianren-anima"
+version = "0.1.0"
+description = "天人·Anima — 认知记忆引擎，记忆即人格"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "torch>=2.0",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+train = ["transformers", "datasets"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
