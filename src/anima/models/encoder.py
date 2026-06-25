@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
+import torch
 
 logger = logging.getLogger("anima.models.encoder")
 
@@ -33,7 +34,6 @@ def _load_model():
     if _model is not None:
         return
 
-    import torch
 
     # 查找模型文件
     model_dir = Path(__file__).parent.parent.parent.parent / "models"
@@ -79,7 +79,6 @@ def _load_model():
 @torch.no_grad()
 def encode_text(text: str) -> List[float]:
     """编码单条文本为 256 维归一化向量"""
-    import torch
 
     _load_model()
 
@@ -97,7 +96,6 @@ def encode_text(text: str) -> List[float]:
 @torch.no_grad()
 def encode_batch(texts: List[str]) -> List[List[float]]:
     """批量编码文本"""
-    import torch
 
     _load_model()
 

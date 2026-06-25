@@ -580,6 +580,18 @@ async def hsg_query(qt: str, k: int = 10, f: Dict[str, Any] = None) -> List[Dict
 
         qe = await embed_query_for_all_sectors(qt, ss)
 
+        # Check if stored vectors match query dimension
+        # If mismatch (e.g., MiniMind 256-dim vs bge-m3 1024-dim), fall back to BM25
+        if qe is not None:
+            try:
+                sample = db.conn.execute("SELECT dim FROM vectors LIMIT 1").fetchone()
+                if sample and sample[0] != len(next(iter(qe.values()))):
+                    logger.info("hsg: vector dim mismatch (stored=%d, query=%d), BM25 fallback",
+                               sample[0], len(next(iter(qe.values()))))
+                    qe = None
+            except Exception:
+                pass
+
         w = {
             "semantic_dimension_weight": 1.2 if qc["primary"] == "semantic" else 0.8,
             "emotional_dimension_weight": 1.5 if qc["primary"] == "emotional" else 0.6,
