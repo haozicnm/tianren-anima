@@ -265,4 +265,4 @@ if __name__ == "__main__":
         run_mcp()
     else:
         print("OpenMemory Python SDK")
-        print("Usage: python -m openmemory.main mcp")
+        print("Usage: python -m anima.main mcp")
