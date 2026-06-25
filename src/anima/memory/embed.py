@@ -22,13 +22,20 @@ from ..ai.synthetic import SyntheticAdapter
 # from ..ai.minimax import MiniMaxAdapter  # removed
 
 async def emb_dispatch(provider: str, t: str, s: str) -> List[float]:
+    if provider == "minimind":
+        from ..models.encoder import encode_text
+        return encode_text(t)
     if provider == "synthetic":
         return await SyntheticAdapter(env.vec_dim or 1024).embed(t, model=s)
     if provider == "openai":
         return await OpenAIAdapter().embed(t, model=env.openai_model)
 
-    # fallback to synthetic
-    return await SyntheticAdapter(env.vec_dim or 1024).embed(t, model=s)
+    # fallback to minimind
+    try:
+        from ..models.encoder import encode_text
+        return encode_text(t)
+    except Exception:
+        return await SyntheticAdapter(env.vec_dim or 1024).embed(t, model=s)
 
 async def embed_for_sector(t: str, s: str) -> List[float]:
     if s not in SECTOR_CONFIGS: raise Exception(f"Unknown sector: {s}")
