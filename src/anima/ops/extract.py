@@ -114,7 +114,7 @@ async def extract_audio(data: bytes, mime_type: str) -> Dict[str, Any]:
         }
     except Exception as e:
         print(f"[EXTRACT] Audio failed: {e}")
-        raise e
+        raise
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
@@ -149,7 +149,7 @@ async def extract_video(data: bytes) -> Dict[str, Any]:
         raise RuntimeError("FFmpeg not found")
     except Exception as e:
         print(f"[EXTRACT] Video failed: {e}")
-        raise e
+        raise
     finally:
         if os.path.exists(vid_path): os.unlink(vid_path)
         if os.path.exists(audio_path): os.unlink(audio_path)

@@ -264,5 +264,5 @@ if __name__ == "__main__":
     elif len(sys.argv) > 1 and sys.argv[1] == "mcp":
         run_mcp()
     else:
-        print("OpenMemory Python SDK")
+        print("天人·Anima Memory Engine")
         print("Usage: python -m anima.main mcp")

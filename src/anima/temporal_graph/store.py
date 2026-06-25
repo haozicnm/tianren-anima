@@ -108,7 +108,7 @@ async def batch_insert_facts(facts: List[Dict[str, Any]]) -> List[str]:
         return ids
     except Exception as e:
         db.execute("ROLLBACK")
-        raise e
+        raise
 
 async def apply_confidence_decay(decay_rate: float = 0.01) -> int:
     now = int(time.time() * 1000)

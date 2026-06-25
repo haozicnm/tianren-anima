@@ -64,7 +64,7 @@ async def mk_root(txt: str, ex: Dict, meta: Dict = None, user_id: str = None, na
         )
         return mid
     except Exception as e:
-        raise e
+        raise
 
 async def mk_child(txt: str, idx: int, tot: int, rid: str, meta: Dict = None, user_id: str = None, nature: Optional[str] = None) -> str:
     m = meta or {}
@@ -131,7 +131,7 @@ async def ingest_document(t: str, data: Any, meta: Dict = None, cfg: Dict = None
         import traceback
         traceback.print_exc()
         print(f"[INGEST] Failed: {e}")
-        raise e
+        raise
 
 async def ingest_url(url: str, meta: Dict = None, cfg: Dict = None, user_id: str = None, nature: Optional[str] = None) -> Dict[str, Any]:
     from .extract import extract_url
@@ -177,4 +177,4 @@ async def ingest_url(url: str, meta: Dict = None, cfg: Dict = None, user_id: str
         }
     except Exception as e:
         print(f"[INGEST] URL Failed: {e}")
-        raise e
+        raise

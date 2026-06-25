@@ -518,14 +518,14 @@ async def add_hsg_memory(content: str, tags: Optional[str] = None, metadata: Any
         # Run synchronously to ensure facts are available for immediate search
         try:
             await _extract_facts_for_memory(mid, content, user_id)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Fact extraction for memory %s failed: %s", mid[:16], e)
 
         # Create temporal edges to top-K nearest neighbors
         try:
             await _create_temporal_edges(mid, mean_vec, now, user_id or "anonymous")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Temporal edge creation for memory %s failed: %s", mid[:16], e)
         
         return {
             "id": mid,
@@ -536,7 +536,7 @@ async def add_hsg_memory(content: str, tags: Optional[str] = None, metadata: Any
             "salience": init_sal
         }
     except Exception as e:
-        raise e
+        raise
 cache = {}
 TTL = 60000
 
@@ -589,8 +589,8 @@ async def hsg_query(qt: str, k: int = 10, f: Dict[str, Any] = None) -> List[Dict
                     logger.info("hsg: vector dim mismatch (stored=%d, query=%d), BM25 fallback",
                                sample[0], len(next(iter(qe.values()))))
                     qe = None
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Vector dim check failed: %s", e)
 
         w = {
             "semantic_dimension_weight": 1.2 if qc["primary"] == "semantic" else 0.8,
@@ -646,6 +646,10 @@ async def hsg_query(qt: str, k: int = 10, f: Dict[str, Any] = None) -> List[Dict
             # L3 群智融合: altruistic memories are visible across users
             is_altruistic = m["nature"] == "altruistic" if "nature" in m.keys() else False
             if f and f.get("user_id") and m["user_id"] != f["user_id"] and not is_altruistic: continue
+            # L1 Nature 过滤: 按 nature 字段筛选结果
+            req_nature = (f or {}).get("nature")
+            mem_nature = m["nature"] if "nature" in m.keys() else None
+            if req_nature and mem_nature != req_nature: continue
 
             mvf = await calc_multi_vec_fusion_score(mid, qe, w) if qe is not None else 0.0
             csr = await calculateCrossSectorResonanceScore(m["primary_sector"], qc["primary"], mvf)
@@ -676,12 +680,12 @@ async def hsg_query(qt: str, k: int = 10, f: Dict[str, Any] = None) -> List[Dict
             if fs is None:
                 fs = 0.0
 
-            # L3 天人比: nature-based scoring bias
+            # L3 天人比: nature-based scoring bias (系数从 0.6 提升到 1.5)
             ratio = (f or {}).get("tian_ren_ratio") or 0.5
             if is_altruistic:
-                fs = sigmoid(math.log(max(fs, 0.001) / max(1 - fs, 0.001)) + (ratio - 0.5) * 0.6)
+                fs = sigmoid(math.log(max(fs, 0.001) / max(1 - fs, 0.001)) + (ratio - 0.5) * 1.5)
             elif m["nature"] == "egoistic" if "nature" in m.keys() else False:
-                fs = sigmoid(math.log(max(fs, 0.001) / max(1 - fs, 0.001)) - (ratio - 0.5) * 0.6)
+                fs = sigmoid(math.log(max(fs, 0.001) / max(1 - fs, 0.001)) - (ratio - 0.5) * 1.5)
 
             item = {
                 "id": mid,
@@ -689,6 +693,7 @@ async def hsg_query(qt: str, k: int = 10, f: Dict[str, Any] = None) -> List[Dict
                 "score": fs,
                 "similarity": best_sim,
                 "nature": m["nature"] if "nature" in m.keys() else None,  # 天人合一 L1
+                "tian_ren_ratio": ratio,  # L3 天人比
                 "primary_sector": m["primary_sector"],
                 "path": em["path"] if em else [mid],
                 "salience": sal,
@@ -853,7 +858,7 @@ async def enrich_with_graph_context(results: List[Dict[str, Any]]) -> List[Dict[
 
             r["graph_edges"] = wp_edges + te
     
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Graph context enrichment failed: %s", e)
     
     return results

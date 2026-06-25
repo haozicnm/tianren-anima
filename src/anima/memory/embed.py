@@ -55,7 +55,7 @@ async def embed_multi_sector(id: str, txt: str, secs: List[str], chunks: Optiona
         return res
     except Exception as e:
         q.upd_log(id=id, status="failed", err=str(e))
-        raise e
+        raise
 def calc_mean_vec(emb_res: List[Dict[str, Any]], all_sectors: List[str]) -> List[float]:
     if not emb_res: return []
     d = emb_res[0]["dim"]

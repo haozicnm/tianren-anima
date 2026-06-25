@@ -1,10 +1,13 @@
 import time
 import json
 import asyncio
+import logging
 from typing import Dict, Any, List
 
 from ..core.db import q, db
 from ..core.config import env
+
+logger = logging.getLogger(__name__)
 
 def gen_user_summary(mems: List[Dict]) -> str:
     if not mems: return "User profile initializing... (No memories recorded yet)"
@@ -26,7 +29,8 @@ def gen_user_summary(mems: List[Dict]) -> str:
                 if meta.get("ide_file_path"):
                     files.add(meta["ide_file_path"].replace("\\", "/").split("/")[-1])
                 if meta.get("ide_event_type") == "save": saves += 1
-            except: pass
+            except Exception as e:
+                logger.warning("Failed to parse memory meta: %s", e)
         events += 1
 
     proj_str = ", ".join(projects) if projects else "Unknown Project"

@@ -265,8 +265,8 @@ JSON:"""
                 for e in entities
                 if isinstance(e, dict) and "name" in e
             ]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("LLM entity extraction failed: %s", e)
 
     return []
 

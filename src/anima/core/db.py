@@ -55,15 +55,15 @@ class DB:
                     try:
                         from importlib import resources
                         sql = resources.files('anima.migrations').joinpath(f).read_text(encoding='utf-8')
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.warning("Migration resource fallback for %s: %s", f, e)
                     if not sql:
                         sql = (Path(__file__).parent.parent / "migrations" / f).read_text(encoding="utf-8")
                     c.executescript(sql)
                     c.execute("INSERT INTO _migrations (name, applied_at) VALUES (?, ?)", (f, int(time.time())))
                 except Exception as e:
                     logger.error(f"[DB] Migration {f} failed: {e}")
-                    raise e
+                    raise
 
     def init_schema(self):
          self.run_migrations()

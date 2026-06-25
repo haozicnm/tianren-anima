@@ -3,6 +3,7 @@ import time
 import math
 import random
 import json
+import logging
 from typing import List, Dict, Any, Optional
 
 from ..core.db import q, db
@@ -11,6 +12,8 @@ from ..core.vector_store import vector_store as store
 from ..utils.vectors import buf_to_vec, vec_to_buf, cos_sim
 from ..utils.text import canonical_tokens_from_text
 from ..core.constants import NATURE_DECAY_MODIFIERS
+
+logger = logging.getLogger(__name__)
 
 class DecayCfg:
     def __init__(self):
@@ -205,8 +208,8 @@ async def on_query_hit(mem_id: str, sector: str, reembed_fn = None):
                  new_vec = await reembed_fn(base)
                  await store.storeVector(mem_id, sector, new_vec, len(new_vec))
                  updated = True
-             except Exception:
-                 pass
+             except Exception as e:
+                 logger.warning("Memory regeneration failed for %s: %s", mem_id, e)
     if cfg.reinforce_on_query:
         new_sal = min(1.0, (m["salience"] or 0.5) + 0.5)
 
